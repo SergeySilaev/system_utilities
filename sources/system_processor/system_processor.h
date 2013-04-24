@@ -35,6 +35,7 @@ namespace system_utilities
 			sp init( const int argc, char * const argv[], const std::string& default_config_file );
 			//
 			void stop( const std::string& reason );
+			bool stopping();
 			void wait_for_stop();
 			void reset();
 			//
@@ -93,6 +94,7 @@ namespace system_utilities
 
 
 					friend void system_processor::stop( const std::string& );
+					friend bool system_processor::stopping();
 					friend void system_processor::wait_for_stop();
 					friend void system_processor::reset();
 					friend void details::exit_handler(int);
@@ -129,6 +131,7 @@ namespace system_utilities
 				public:
 					~sp_impl();
 					void stop( const std::string& reason );
+					bool stopping() const;
 					void wait_for_stop();
 					void reset();
 				private:

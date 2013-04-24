@@ -141,6 +141,11 @@ namespace system_utilities
 					}
 					stop_waiter_.notify_all();
 				}
+				bool sp_impl::stopping() const
+				{
+					boost::mutex::scoped_lock lock( stop_protector_ );
+					return stopping_;
+				}
 				void sp_impl::wait_for_stop()
 				{
 					boost::mutex::scoped_lock lock( stop_protector_ );
@@ -245,6 +250,14 @@ namespace system_utilities
 				boost::mutex::scoped_lock lock( details::sp_impl::instance_protector_ );
 				if ( details::sp_impl::instance_ )
 					details::sp_impl::instance_->stop( reason );
+				else
+					throw std::logic_error( "system processor was not create, call init first" );
+			}
+			bool stopping()
+			{
+				boost::mutex::scoped_lock lock( details::sp_impl::instance_protector_ );
+				if ( details::sp_impl::instance_ )
+					return details::sp_impl::instance_->stopping();
 				else
 					throw std::logic_error( "system processor was not create, call init first" );
 			}

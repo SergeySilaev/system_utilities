@@ -12,6 +12,7 @@ test_suite* init_unit_test_suite( int argc, char* argv[] )
 	using namespace system_utilities::tests_::common;
 	ts1->add( BOOST_TEST_CASE( &system_processor_constructor_tests ) );
 	ts1->add( BOOST_TEST_CASE( &system_processor_init_tests ) );
+	ts1->add( BOOST_TEST_CASE( &system_processor_stopping_tests ) );
 	ts1->add( BOOST_TEST_CASE( &system_processor_stop_wait_stop_tests ) );
 	ts1->add( BOOST_TEST_CASE( &system_processor_exit_handler_tests ) );
 	ts1->add( BOOST_TEST_CASE( &system_processor_logs_path_tests ) );

@@ -66,6 +66,24 @@ namespace system_utilities
 					system_processor::stop( "stop by test purposes" );
 				}
 			}
+			void system_processor_stopping_tests()
+			{
+				using namespace boost::filesystem;
+				static const std::string tests_directory = SOURCE_DIR "/tests/data/system_processor/";
+				current_path( tests_directory );
+
+				int argc = 1;
+				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				{
+					time_tracker tt;
+					system_processor::sp sp = system_processor::init( argc, argv, "config_example_005.ini" );
+					BOOST_CHECK_EQUAL(sp->stopping(), false);
+					sp->stop("");
+					BOOST_CHECK_EQUAL(sp->stopping(), true);
+				}
+
+				remove_all( "logs_005" );
+			}
 			void system_processor_stop_wait_stop_tests()
 			{
 				using namespace boost::filesystem;
