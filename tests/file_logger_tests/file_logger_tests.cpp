@@ -18,6 +18,8 @@ namespace system_utilities
 			{
 				static const std::string tests_directory = SOURCE_DIR "/tests/data/file_logger/";
 				using namespace boost::filesystem;
+                if (!exists( tests_directory ) )
+                    create_directory( tests_directory );
 				current_path( tests_directory );
 				{
 					file_logger<> simple_logger( "log_test_1.out" );
@@ -26,7 +28,7 @@ namespace system_utilities
 				remove( "log_test_1.out" );
 				{
 					queue_logger<>::tasker tasker( 1 );
-					file_logger< queue_logger<> > simple_logger( "log_test_2.out", tasker );
+					file_logger< queue_logger<> > simple_logger( "log_test_2.out", tasker, std::ios_base::app );
 					BOOST_CHECK_EQUAL( exists( "log_test_2.out" ), true );
 				}
 				remove( "log_test_2.out" );
@@ -107,11 +109,12 @@ namespace system_utilities
 				static const size_t tests_size = 20000;
 				using namespace boost::filesystem;
 
+				remove( "log_test_3.out" );
 				typedef queue_logger< true, false, true > queue_logger_type;
 				typedef file_logger< queue_logger_type > file_logger_type;
 				{
 					queue_logger_type::tasker tasker( log_threads_size );
-					file_logger_type logger( "log_test_3.out", tasker );
+					file_logger_type logger( "log_test_3.out", tasker, std::ios_base::app );
 					boost::thread_group tg;
 					time_tracker tt;
 					for( size_t i = 0 ; i < writers ; ++i )
@@ -125,14 +128,13 @@ namespace system_utilities
 				}
 				BOOST_CHECK_EQUAL( exists( "log_test_3.out" ), true );
 				{
-					char buffer[256];
 					std::ifstream str( "log_test_3.out", std::ios::in );
 					size_t line_count = 0;
 					boost::regex string_regexp( "\\[\\d{4}\\-\\w{3}\\-\\d{2} \\d{2}\\:\\d{2}\\:\\d{2}\\.\\d{6}\\:[A-Z ]{7}\\]\\: 1234567890123456789012345678901" );
 					while ( !str.eof() )
-					{
-						str.getline( buffer, 256 );
-						const std::string line( buffer );
+					{						
+						std::string line;
+						std::getline( str, line );
 						if ( line.empty() )
 							continue;
 						line_count++;

@@ -71,6 +71,8 @@ elseif(UNIX)
         set(CMAKE_ADDRESS_MODEL 64) 
     elseif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "i686")
         set(CMAKE_ADDRESS_MODEL 32)
+    elseif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "i386")
+        set(CMAKE_ADDRESS_MODEL 32)
     else()
         message( FATAL_ERROR "Unknown address model type" )
     endif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
@@ -99,13 +101,10 @@ if ( UNIX )
 
 	set(output_path ${PROJECT_BINARY_DIR}/bin_${CMAKE_ADDRESS_MODEL}/${CMAKE_BUILD_TYPE})
 elseif( WIN32 )
-#	add_definitions( -D_CRT_SECURE_NO_WARNINGS )
-#	add_definitions( -D_SCL_SECURE_NO_WARNINGS )
-    add_definitions( -D_WIN32_WINNT=0x0501)
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa") 
-
+	add_definitions( -D_CRT_SECURE_NO_WARNINGS )
+	add_definitions( -D_WIN32_WINNT=0x0501 )
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa") 
 	set(output_path ${PROJECT_BINARY_DIR}/bin_${CMAKE_ADDRESS_MODEL}/)
-
 endif( UNIX )
 
 set( SOLUTION_BINARY_DIR ${PROJECT_BINARY_DIR} )
@@ -127,10 +126,14 @@ if (${VERBOSE})
 	message( STATUS " -T: Using Boost filesystem version: 2" )
 endif(${VERBOSE})
 
-if (NOT ${VERBOSE})
-	set( BOOST_SEARCH_PARAMETERS REQUIRED QUIET )
+# --------------------------------------------------------------------------
+# use_folders, saving configuration to the build
+# --------------------------------------------------------------------------
+
+if (${VERBOSE})
+	set( SEARCH_PARAMETERS REQUIRED QUIET )
 else()
-	set( BOOST_SEARCH_PARAMETERS REQUIRED )
+	set( SEARCH_PARAMETERS REQUIRED QUIET )
 endif()
 
 # --------------------------------------------------------------------------

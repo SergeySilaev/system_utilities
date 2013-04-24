@@ -23,12 +23,24 @@ Description: logger module create for creating logs to different streams (std::o
  * queue_logger module, created by Ivan Sidarau
 Description: queue_logger module combine task_processor and logger modules add possibility to use logger into thread safe environment.
 
+ * limited_file_logger module, created by Ivan Sidarau
+Descripption: limited_file_logger module limit file logger by size, so if you want to limit your logs - please use this logger.
+Example: you set limit to log file (in megabytes), when that limit will be reached - limit_file_logger will close filestream, rename file to <file_name>.old (delete such file if exists), open new file stream - and log all next actions.
+So maximum size of this log on your hdd will be <limit_size> * 2. Please be sure that you have enought free space on your storage.
+
  * file_logger module, created by Ivan Sidarau
 Description: file_logger module create template class that can log information using simple logger, and queue_logger.
 
  * system_processor module, created by Ivan Sidarau
 Description: system_processor module is a singleton based class that gave simple possibility to create special waiter.
+if default config file have System.stop_by_ctrl_c = true parameter, than stop method will be called 
 
  * ts_logger module,  created by Ivan Sidarau.
 Description: logger<> like module with mutex synchonization on write method, could be used in several threads (if performance is a must, consider using queue_logger).
+
+ * multikey_tree module, created by Sergey Silaev, idea by Ivan Sidarau
+Description: fast thread safe map with std::string as key. created for small strings keys. works faster than std::map< std::string, VALUE > on big amount of insert/get
+
+ * shared_name_storage module, created by Ivan Sidarau
+Description: store map of shared_ptr's to gave possibility to user easy to work with array of strings by index (works like indexed database by id and by string [id, string])
 

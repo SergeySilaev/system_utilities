@@ -1,6 +1,7 @@
 
 #include "property_reader.h"
 
+#include <fstream>
 #include <string.h>
 #include <stdexcept> 
 
@@ -28,13 +29,11 @@ property_reader::property_reader( std::istream& stream, const std::string& defau
 void property_reader::parse_istream( std::istream& stream )
 {
 	size_t line_counter = 0;
-	static const size_t buffer_size = 2048;
-	char buffer[ buffer_size ];
 	while (!stream.eof())
 	{
 		line_counter ++;
-		stream.getline( buffer, buffer_size );
-		std::string line( buffer, std::min( buffer_size, strlen( buffer ) ) );
+		std::string line;
+		std::getline( stream, line );
 		delete_comment( line );
 		if (line.length() == 0 || line[0] == '\0')
 			continue;
@@ -181,6 +180,51 @@ const size_t property_reader::size() const
 {
 	return properties_.size();
 }
+
+const bool property_reader::get_value( const std::string& parameter_name, const bool& default_param_value ) const
+{
+    bool result = default_param_value;
+    properties::const_iterator i = properties_.find( parameter_name );
+    if ( i != properties_.end() )
+    {
+        if (i->second == "true" || i->second == "on" || i->second == "1" || i->second == "TRUE")
+            return true;
+        else
+            return false;
+    }
+    return result;
+}
+const std::string property_reader::get_value( const std::string& parameter_name, const char* const default_param_value ) const
+{
+    return get_value( parameter_name, std::string( default_param_value ) );
+}
+const std::string property_reader::get_value( const std::string& parameter_name, const std::string& default_param_value ) const
+{
+    properties::const_iterator i = properties_.find( parameter_name );
+    if ( i != properties_.end() )
+        return i->second;
+    return default_param_value;
+}
+const property_reader::strings property_reader::get_values( const std::string& parameter_name, const std::string& delimeters ) const
+{
+    properties::const_iterator i = properties_.find( parameter_name );
+    if ( i != properties_.end() )
+        return split( i->second, delimeters, true );
+    return strings();
+}
+
+const bool property_reader::set_value( const std::string& parameter_name, const std::string& value )
+{
+    properties_[ parameter_name ] = value;
+    return true;
+}
+
+const bool property_reader::reset_value( const std::string& parameter_name, const std::string& value )
+{
+    properties_[ parameter_name ] = value;
+    return true;
+}
+
 
 const bool property_reader::delete_value( const std::string& parameter_name )
 {
