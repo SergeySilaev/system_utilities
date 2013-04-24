@@ -18,136 +18,46 @@ namespace system_utilities
 	}
     namespace common
 	{
+		// default file_logger template class - created to write log into files
+		// see logger module - to understand template parameters
 
 		template< class inside_logger = logger< true, true, true > >
-		class file_logger;
-
-		namespace details
+		class file_logger : public inside_logger
 		{
-			template< class inside_logger = logger< true, true, true > >
-			class file_logger_pimpl : public inside_logger
-			{
-				friend class file_logger< inside_logger >;
-
-				explicit file_logger_pimpl( std::ofstream& stream )
-					: inside_logger( stream )
-				{
-				}
-				template< class P1 >
-				explicit file_logger_pimpl( std::ofstream& stream, P1& p1 )
-					: inside_logger( stream, p1 )
-				{
-				}
-				template< class P1, class P2 >
-				explicit file_logger_pimpl( std::ofstream& stream, P1& p1, P2& p2 )
-					: inside_logger( stream, p1, p2 )
-				{
-				}
-			public:
-				~file_logger_pimpl()
-				{
-				}
-			};
-
-		}
-
-		template< class inside_logger >
-		class file_logger : public boost::shared_ptr< details::file_logger_pimpl< inside_logger > >
-		{
-			typedef details::file_logger_pimpl< inside_logger > pimpl;
 			std::ofstream file_stream_;
-
-			void open_stream( const std::string& file_path )
+		protected:
+			void open_stream( const std::string& file_path, std::ios_base::openmode mode )
 			{
-				using namespace boost::filesystem;
-				path p( file_path );
-				if (exists( p ))
-					throw std::logic_error( "file: " + file_path + " exists, we can't use it for log file" );
-				file_stream_.open( file_path.c_str(), std::ios::out );
+				file_stream_.open( file_path.c_str(), mode );
 				if (!file_stream_.is_open())
 					throw std::logic_error( "file: " + file_path + " could not be opened." );
 			}
-		public:
-			explicit file_logger( const std::string& file_path )
+			void close_stream()
 			{
-				using namespace boost::filesystem;
-				path p( file_path );
-				/// TODO check on existance
-				file_stream_.open( file_path.c_str(), std::ios::out );
-				this->reset( new pimpl( file_stream_ ) );
+				file_stream_.close();
+			}
+		public:
+			explicit file_logger( const std::string& file_path, std::ios_base::openmode mode = std::ios_base::app )
+				: inside_logger( file_stream_ )
+			{
+				open_stream( file_path, mode );
 			}
 			template< class P1 >
-			explicit file_logger( const std::string& file_path, P1& p1 )
+			explicit file_logger( const std::string& file_path, P1& p1, std::ios_base::openmode mode )
+				: inside_logger( file_stream_, p1 )
 			{
-				open_stream( file_path );
-				this->reset( new pimpl( file_stream_, p1 ) );
+				open_stream( file_path, mode );
 			}
 			template< class P1, class P2 >
-			explicit file_logger( const std::string& file_path, P1& p1, P2& p2 )
+			explicit file_logger( const std::string& file_path, P1& p1, P2& p2, std::ios_base::openmode )
+				: inside_logger( file_stream_, p1, p2 )
 			{
-				using namespace boost::filesystem;
-				path p( file_path );
-				/// TODO check on existance
-				file_stream_.open( file_path.c_str(), std::ios::out );
-				this->reset( new pimpl( file_stream_, p1, p2 ) );
+				open_stream( file_path, mode );
 			}
 			~file_logger()
 			{
-				this->reset();
+				file_stream_.close();
 			}
-			//
-			details::file_logger_pimpl< inside_logger >& operator->()
-			{
-				return *this;
-			}
-
-
-            inline void note( const std::string& message )
-			{
-			    get()->note( message );
-			}
-			inline typename pimpl::streamer note()
-			{
-				return get()->note();
-			}
-            inline void warn( const std::string& message )
-			{
-				get()->warn( message );
-			}
-			inline typename pimpl::streamer warn()
-			{
-				return get()->warn();
-			}
-            inline void error( const std::string& message )
-			{
-			    get()->error( message );
-			}
-			inline typename pimpl::streamer error()
-			{
-				return get()->error();
-			}
-			inline void debug( const std::string& message )
-			{
-			    get()->debug( message );
-			}
-			inline typename pimpl::streamer debug()
-			{
-				return get()->debug();
-			}
-            inline void fatal( const std::string& message )
-			{
-			    get()->fatal( message );
-			}
-			inline typename pimpl::streamer fatal()
-			{
-				return get()->fatal();
-			}
-
-			inline void flush()
-			{
-			    get()->flush();
-			}
-
 		};
 
 	};

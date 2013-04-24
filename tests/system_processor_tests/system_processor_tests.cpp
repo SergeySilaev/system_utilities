@@ -20,7 +20,7 @@ namespace system_utilities
 				using namespace boost::filesystem;
 				static const std::string tests_directory = SOURCE_DIR "/tests/data/system_processor/";
 				current_path( tests_directory );
-
+				
 				BOOST_CHECK_THROW( system_processor::details::sp_impl( "" ), std::logic_error );
 				BOOST_CHECK_NO_THROW( system_processor::details::sp_impl( tests_directory.c_str() ) );
 				BOOST_CHECK_THROW( system_processor::details::sp_impl( "", "" ), std::logic_error );
@@ -30,7 +30,7 @@ namespace system_utilities
 				remove_all( "logs" );
 				BOOST_CHECK_THROW( system_processor::details::sp_impl( tests_directory, "config_example_002.ini" ), std::exception );
 				BOOST_CHECK_NO_THROW( system_processor::details::sp_impl( tests_directory, "config_example_003.ini" ) );
-				remove_all( "c:/system_utilities_logs" );
+				remove_all( tests_directory + "logs_path" );
 				{
 					system_processor::details::sp_impl processor( tests_directory, "config_example_001.ini" );
 					boost::regex log_path_regexp(	"logs/\\d{8}\\_\\d{6}\\_\\d{6}\\/" );
@@ -47,11 +47,13 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 3;
-				char* const argv[] = { 
-					SOURCE_DIR "/tests/data/system_processor/test.exe",
-					"--config",
-					"config_example_004.ini"
-				};
+				char* argv[ 3 ];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                char argv1[] = "--config";
+                char argv2[] = "config_example_004.ini";
+                argv[0] = argv0 + 0;
+                argv[1] = argv1 + 0;
+                argv[2] = argv2 + 0;
 				{
 					system_processor::sp sp = system_processor::init( argc, argv, "" );
 				}
@@ -91,7 +93,10 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv1[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv1 + 0;
+                
 				{
 					time_tracker tt;
 					system_processor::sp sp = system_processor::init( argc, argv, "config_example_005.ini" );
@@ -117,7 +122,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0 + 0;
 				{
 					time_tracker tt;
 					system_processor::sp sp = system_processor::init( argc, argv, "config_example_006.ini" );
@@ -133,7 +140,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::binary_path(), std::exception );
 				{
@@ -150,7 +159,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 				{
@@ -171,7 +182,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 				{
@@ -186,6 +199,33 @@ namespace system_utilities
 				}
 				remove_all( "logs_008" );
 			}
+			void system_processor_set_config_tests()
+			{
+				using namespace boost::filesystem;
+				static const std::string tests_directory = SOURCE_DIR "/tests/data/system_processor/";
+				current_path( tests_directory );
+
+				int argc = 1;
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
+
+				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
+				{
+					system_processor::sp sp = system_processor::init( argc, argv, "config_example_008.ini" );
+					
+					BOOST_CHECK_EQUAL( system_processor::config( "Parameter.config" ), "hello world" );
+					BOOST_CHECK_EQUAL( system_processor::config<bool>( "System.stop_by_ctrl_c" ), true );
+					BOOST_CHECK_EQUAL( system_processor::config<double>( "Parameter.double" ), 45.6 );
+					BOOST_CHECK_NO_THROW( system_processor::set_config( "Parameter.config", 45 ) );
+					BOOST_CHECK_EQUAL( system_processor::config( "Parameter.config" ), "45" );
+					BOOST_CHECK_EQUAL( system_processor::config<int>( "Parameter.config" ), 45 );
+
+					BOOST_CHECK_NO_THROW( sp->properties_->check_value( "System.log.path" ) );
+
+				}
+				remove_all( "logs_008" );
+			}
 			void system_processor_config_values_tests()
 			{
 				using namespace boost::filesystem;
@@ -193,14 +233,16 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 				{
 					system_processor::sp sp = system_processor::init( argc, argv, "config_example_009.ini" );
 					
 					BOOST_CHECK_EQUAL( system_processor::config( "Parameter.config" ), "hello world" );
-					BOOST_CHECK_EQUAL( system_processor::config_values( "Parameter.values" ).size(), 4 );
+					BOOST_CHECK_EQUAL( system_processor::config_values( "Parameter.values" ).size(), 4U );
 					BOOST_CHECK_EQUAL( system_processor::config_values( "Parameter.values" )[0], "hello" );
 					BOOST_CHECK_EQUAL( system_processor::config_values( "Parameter.values" )[1], "world" );
 					BOOST_CHECK_EQUAL( system_processor::config_values( "Parameter.values" )[2], "some" );
@@ -219,7 +261,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 				{
@@ -235,7 +279,7 @@ namespace system_utilities
 
 					BOOST_CHECK_EQUAL( system_processor::config( "parameter_01" ), "value_01_new" );
 					BOOST_CHECK_EQUAL( system_processor::config< double >( "parameter_02", 0.0 ), 22.33 );
-					BOOST_CHECK_EQUAL( system_processor::config< size_t >( "parameter_03", 0 ), 1235 );
+					BOOST_CHECK_EQUAL( system_processor::config< size_t >( "parameter_03", 0 ), 1235U );
 				}
 				remove_all( "logs_011" );
 			}
@@ -246,7 +290,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 				{
@@ -272,8 +318,10 @@ namespace system_utilities
 					static const std::string tests_directory = SOURCE_DIR "/tests/data/system_processor/";
 					current_path( tests_directory );
 
-					int argc = 1;
-					char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+                    int argc = 1;
+                    char* argv[1];
+                    char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                    argv[0] = argv0;
 
 					BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 					{
@@ -282,7 +330,7 @@ namespace system_utilities
 						BOOST_CHECK_EQUAL( system_processor::config_rename_parameter( "user_nice_name", "global.calculating.thread_count" ), true );
 						BOOST_CHECK_EQUAL( system_processor::config_check_value( "user_nice_name" ), false );
 						BOOST_CHECK_EQUAL( system_processor::config_check_value( "global.calculating.thread_count" ), true );
-						BOOST_CHECK_EQUAL( system_processor::config< size_t >( "global.calculating.thread_count", 0 ), 4 );
+						BOOST_CHECK_EQUAL( system_processor::config< size_t >( "global.calculating.thread_count", 0 ), 4U );
 					}
 					remove_all( "logs_014.1" );
 				}
@@ -291,8 +339,10 @@ namespace system_utilities
 					static const std::string tests_directory = SOURCE_DIR "/tests/data/system_processor/";
 					current_path( tests_directory );
 
-					int argc = 1;
-					char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+                    int argc = 1;
+                    char* argv[1];
+                    char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                    argv[0] = argv0;
 
 					BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 					{
@@ -311,8 +361,10 @@ namespace system_utilities
 					static const std::string tests_directory = SOURCE_DIR "/tests/data/system_processor/";
 					current_path( tests_directory );
 
-					int argc = 1;
-					char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+                    int argc = 1;
+                    char* argv[1];
+                    char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                    argv[0] = argv0;
 
 					BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 					{
@@ -335,7 +387,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 				{
@@ -365,7 +419,9 @@ namespace system_utilities
 				current_path( tests_directory );
 
 				int argc = 1;
-				char* const argv[] = { SOURCE_DIR "/tests/data/system_processor/test.exe" };
+				char* argv[1];
+                char argv0[] = SOURCE_DIR "/tests/data/system_processor/test.exe";
+                argv[0] = argv0;
 
 				BOOST_CHECK_THROW( system_processor::logs_path(), std::exception );
 				{

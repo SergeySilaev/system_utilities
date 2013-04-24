@@ -19,6 +19,10 @@ namespace system_utilities
 	}
     namespace common
     {
+
+		// property reader is a class that gaves you possibility to read simple configuration files
+		// tests for property reader to see usage examples
+
         class property_reader
         {
 			friend class system_utilities::tests_::common::property_reader_test_helper;
@@ -51,6 +55,10 @@ namespace system_utilities
 			static const strings split( const std::string& str, const std::string& delimeters = ",", const bool trim_each = true );
 		public:
 			const size_t size() const;
+            
+			const bool get_value( const std::string& parameter_name, const bool& default_param_value ) const;
+			const std::string get_value( const std::string& parameter_name, const std::string& default_param_value ) const;
+			const std::string get_value( const std::string& parameter_name, const char* const default_param_value = "" ) const;
 			template< class result_type >
 			const result_type get_value( const std::string& parameter_name, const result_type& default_param_value ) const
 			{
@@ -60,71 +68,27 @@ namespace system_utilities
 					return boost::lexical_cast< result_type >( i->second );
 				return result;
 			}
-			template<>
-			const bool get_value< bool >( const std::string& parameter_name, const bool& default_param_value ) const
-			{
-				bool result = default_param_value;
-				properties::const_iterator i = properties_.find( parameter_name );
-				if ( i != properties_.end() )
-				{
-					if (i->second == "true" || i->second == "on" || i->second == "1" || i->second == "TRUE")
-						return true;
-					else
-						return false;
-				}
-				return result;
-			}
-			template<>
-			const std::string get_value< std::string >( const std::string& parameter_name, const std::string& default_param_value ) const
-			{
-				properties::const_iterator i = properties_.find( parameter_name );
-				if ( i != properties_.end() )
-					return i->second;
-				return default_param_value;
-			}
-			const std::string get_value( const std::string& parameter_name, const std::string& default_param_value = "" ) const
-			{
-				return get_value< std::string >( parameter_name, default_param_value );
-			}
 
-			const strings get_values( const std::string& parameter_name, const std::string& delimeters = "," ) const
-			{
-				properties::const_iterator i = properties_.find( parameter_name );
-				if ( i != properties_.end() )
-					return split( i->second, delimeters, true );
-				return strings();
-			}
+			const strings get_values( const std::string& parameter_name, const std::string& delimeters = "," ) const;
 			//
+			const bool set_value( const std::string& parameter_name, const std::string& value );
 			template< class value_type >
 			const bool set_value( const std::string& parameter_name, const value_type& value )
 			{
 				properties_[ parameter_name ] = boost::lexical_cast< std::string >( value );
 				return true;
 			}
-			template<>
-			const bool set_value< std::string >( const std::string& parameter_name, const std::string& value )
-			{
-				properties_[ parameter_name ] = value;
-				return true;
-			}
 			//
+			const bool reset_value( const std::string& parameter_name, const std::string& value );
 			template< class value_type >
 			const bool reset_value( const std::string& parameter_name, const value_type& value )
 			{
 				properties_[ parameter_name ] = boost::lexical_cast< std::string >( value );
 				return true;
 			}
-			template<>
-			const bool reset_value< std::string >( const std::string& parameter_name, const std::string& value )
-			{
-				properties_[ parameter_name ] = value;
-				return true;
-			}
 			//
 			const bool delete_value( const std::string& parameter_name );
-
 			const bool rename_parameter( const std::string& old_parameter_name, const std::string& new_parameter_name );
-
 			const bool check_value( const std::string& parameter_name ) const;
         };
     };

@@ -24,6 +24,20 @@ namespace system_utilities
     {
 		namespace system_processor
 		{
+
+			// system processor is a namespace with a bunch of methods that helps to create multi-thread back-end servers
+			// usage example:
+			// creating system_processor singleton
+			//	system_processor::sp sp = system_processor::init( argc, argv, "configuration.ini" );
+			//  run_calculating_threads_or_system();
+			//  wait until some thread will call stop() method
+			//	sp->wait_for_stop();
+			// You can use into your configuration file next strings:
+			// * System.log.path = logs (will save all logs to 'logs' folder )
+			// * System.log.name = engine.log - will create engine log file, with settings (system log file)
+			// * System.stop_by_ctrl_c = true - this settings says - that ctrl+c - should call stop() method and stop application
+			// * include new_file.ini - will include new_file.ini as a part of config
+		
 			namespace details
 			{
 				class sp_impl;
@@ -46,6 +60,9 @@ namespace system_utilities
 
 			template< class result_type >
 			result_type config( const std::string& name, const result_type& default_value = result_type() );
+
+			template< class value_type >
+			void set_config( const std::string& name, const value_type& value );
 			//
 			void config_reset_value( const std::string& name, const std::string& default_value = "" );
 
@@ -68,6 +85,9 @@ namespace system_utilities
 				template< class result_type >
 				result_type config_impl( const std::string& name, const result_type& default_value = result_type() );
 
+				template< class value_type >
+				void set_config_impl( const std::string& name, const value_type& value );
+
 				property_reader::strings config_values_impl( const std::string& name, const std::string& delimeters = "," );
 
 				class sp_impl : protected virtual boost::noncopyable
@@ -81,6 +101,9 @@ namespace system_utilities
 
 					template< typename result_type >
 					friend result_type config_impl( const std::string& name, const result_type& default_value );
+
+					template< class value_type >
+					friend void set_config_impl( const std::string& name, const value_type& value );
 
 					friend property_reader::strings config_values_impl( const std::string& name, const std::string& delimeters );
 
@@ -163,6 +186,16 @@ namespace system_utilities
 						throw std::logic_error( "config file should be added by parameters." );
 					return details::sp_impl::instance_->properties_->get_value( name, default_value );
 				}
+				template< class value_type >
+				void set_config_impl( const std::string& name, const value_type& value )
+				{
+					boost::mutex::scoped_lock lock( details::sp_impl::instance_protector_ );
+					if (!details::sp_impl::instance_)
+						throw std::logic_error( "system processor should exist (init method)." );
+					if (!details::sp_impl::instance_->properties_.get())
+						throw std::logic_error( "config file should be added by parameters." );
+					details::sp_impl::instance_->properties_->set_value( name, value );
+				}
 
 				template< class value_type >
 				void config_reset_value( const std::string& name, const value_type& default_value )
@@ -172,10 +205,8 @@ namespace system_utilities
 						throw std::logic_error( "system processor should exist (init method)." );
 					if (!details::sp_impl::instance_->properties_.get())
 						throw std::logic_error( "config file should be added by parameters." );
-					
 					details::sp_impl::instance_->properties_->reset_value( name, default_value );
 				}
-				
 				property_reader::strings config_values_impl( const std::string& name, const std::string& delimeters );
 			}
 			//
@@ -183,6 +214,11 @@ namespace system_utilities
 			result_type config( const std::string& name, const result_type& default_value )
 			{
 				return details::config_impl< result_type >( name, default_value );
+			}
+			template< class value_type >
+			void set_config( const std::string& name, const value_type& value )
+			{
+				return details::set_config_impl( name, value );
 			}
 			property_reader::strings config_values( const std::string& name, const std::string& delimeters = "," );
 			//
@@ -209,7 +245,7 @@ namespace system_utilities
 				return result;
 			}
 			template< class T, class P1, class P2 >
-			boost::shared_ptr< file_logger< T > > create_log( const std::string& file_name, const P2& p2 )
+			boost::shared_ptr< file_logger< T > > create_log( const std::string& file_name, const P1& p1, const P2& p2 )
 			{
 				typedef boost::shared_ptr< file_logger< T > > result_type;
 				result_type result( new file_logger< T >( logs_path() + file_name, p1, p2 ) );
